@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survival Count - Friend Premium</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(circle at center, #1a1c29 0%, #0d0e15 100%);
+            --card-bg: rgba(25, 28, 42, 0.75);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary-glow: #00f2fe;
+            --secondary-glow: #ff3366;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+            overflow: hidden;
+        }
+
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            padding: 25px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            z-index: 2;
+            position: relative;
+        }
+
+        h2 {
+            color: var(--primary-glow);
+            margin-top: 0;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+        }
+
+        .rules-box {
+            background: rgba(15, 23, 42, 0.6);
+            border-left: 4px solid #ffd700;
+            padding: 10px;
+            font-size: 12px;
+            text-align: left;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        input, button {
+            padding: 12px;
+            font-size: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin: 6px 0;
+            outline: none;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input {
+            width: 82%;
+            background: rgba(10, 12, 18, 0.8);
+            color: var(--text-main);
+            text-align: center;
+        }
+
+        input:focus {
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.25);
+        }
+
+        button {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            color: #0d0e15;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            width: 90%;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.35);
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.5);
+        }
+
+        button:disabled {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .counter {
+            font-size: 45px;
+            font-weight: 700;
+            color: #ffd700;
+            margin: 15px 0;
+            text-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+        }
+
+        .log {
+            background: rgba(10, 12, 18, 0.9);
+            border: 1px solid var(--border-color);
+            height: 120px;
+            overflow-y: auto;
+            text-align: left;
+            padding: 8px;
+            font-size: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-group button {
+            width: 32%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-group button:hover:not(:disabled) {
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        }
+
+        .anim-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            display: none;
+            overflow: hidden;
+        }
+
+        .floating-emoji {
+            position: absolute;
+            font-size: 35px;
+            animation: floatUp 3s linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="anim-container" id="animContainer"></div>
+
+    <div class="container">
+        <h2>Join Game</h2>
+        <div class="rules-box">
+            <b>খেলার নিয়ম:</b> পালা করে ১, ২ বা ৩ টি সংখ্যা কমাতে হবে। যে খেলোয়াড় শেষ সংখ্যাটি ১ পাবে বা কাউন্ট ০ করে ফেলবে, সে হেরে যাবে এবং অপরজন জিতে যাবে!
+        </div>
+        </div>
+        
+        <div id="connectionScreen">
+            <p style="font-size: 13px; color: var(--text-muted);">Apnar Nam:</p>
+            <input type="text" id="friendName" value="Friend Player">
+            <p style="font-size: 13px; color: var(--text-muted);">Host Room ID:</p>
+            <input type="text" id="hostIdInput" placeholder="Host ID ekhane paste korun">
+            <br>
+            <button onclick="connectToHost()">Connect Korun</button>
+            <p id="statusText" style="font-size: 12px; color: var(--text-muted); margin-top: 10px;"></p>
+        </div>
+
+        <div id="gameScreen" style="display:none;">
+            <p id="turnIndicator" style="color: var(--secondary-glow); font-weight: 600; font-size: 14px;"></p>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 0;">Baki ache:</p>
+            <div class="counter" id="currentCount">50</div>
+            <div class="log" id="logBox"></div>
+            <p style="font-size: 13px; color: var(--text-muted);">Koiti songkha nite chan (1-3)?</p>
+            <div class="btn-group">
+                <button id="btn1" onclick="makeMove(1)" disabled>1</button>
+                <button id="btn2" onclick="makeMove(2)" disabled>2</button>
+                <button id="btn3" onclick="makeMove(3)" disabled>3</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let peer = new Peer();
+        let conn;
+        let current = 50;
+        let myName = "Friend", hostName = "Host";
+        let isMyTurn = false;
+        let lastOneTimer = null;
+
+        function connectToHost() {
+            let nameVal = document.getElementById('friendName').value.trim();
+            if (nameVal) myName = nameVal;
+
+            let hid = document.getElementById('hostIdInput').value.trim();
+            if (!hid) { alert("Doya kore Host ID দিন!"); return; }
+            
+            document.getElementById('statusText').innerText = "Connect hocche...";
+            conn = peer.connect(hid);
+
+            conn.on('open', () => {
+                document.getElementById('connectionScreen').style.display = 'none';
+                document.getElementById('gameScreen').style.display = 'block';
+                
+                conn.send({ type: 'NAME', name: myName });
+                logMessage("Connect safol hoyeche! game shuru korar jonno opekkha korun...");
+                setupConnectionEvents();
+            });
+
+            conn.on('error', () => {
+                alert("Connect hote shomosya hoyeche! ID thik ache kina check korun.");
+            });
+        }
+
+        function setupConnectionEvents() {
+            conn.on('data', (data) => {
+                if (data.type === 'START') {
+                    current = data.total;
+                    hostName = data.name;
+                    document.getElementById('currentCount').innerText = current;
+                    logMessage(`Game shuru holo! Total: ${current}`);
+                    
+                    if (data.firstTurn === 'friend') {
+                        isMyTurn = true;
+                    } else {
+                        isMyTurn = false;
+                    }
+                    updateTurnUI();
+                    checkLastOneStatus();
+                } else if (data.type === 'MOVE') {
+                    if (data.count >= current) {
+                        current = 0;
+                        document.getElementById('currentCount').innerText = current;
+                        clearTimeout(lastOneTimer);
+                        logMessage(`<b>Game Shes! ${hostName}, apni here gechen! 😢 Ar ${myName}, apni jite gechen! 🥳</b>`);
+                        triggerAnimation('win');
+                        lockControls(true);
+                        return;
+                    }
+
+                    current -= data.count;
+                    document.getElementById('currentCount').innerText = current;
+                    logMessage(`<b>${hostName}</b> nilo: ${data.count} ti. Baki: ${current}`);
+                    
+                    isMyTurn = true;
+                    updateTurnUI();
+                    checkLastOneStatus();
+                } else if (data.type === 'TIMEOUT_LOSE') {
+                    clearTimeout(lastOneTimer);
+                    document.getElementById('currentCount').innerText = current;
+                    logMessage(`<b>Game Shes! ${myName}, apni 10 second e 1 ti songkha nenni, tai apni here gechen! 😢 Ar ${hostName} jite geche! 🥳</b>`);
+                    triggerAnimation('sad');
+                    lockControls(true);
+                }
+            });
+        }
+
+        function makeMove(count) {
+            if (!isMyTurn) return;
+            clearTimeout(lastOneTimer);
+
+            if (count >= current) {
+                current = 0;
+                document.getElementById('currentCount').innerText = current;
+                logMessage(`<b>Game Shes! ${myName}, apni here gechen! 😢 Ar ${hostName} jite gechen! 🥳</b>`);
+                conn.send({ type: 'MOVE', count: count });
+                triggerAnimation('sad');
+                lockControls(true);
+                return;
+            }
+
+            current -= count;
+            document.getElementById('currentCount').innerText = current;
+            logMessage(`<b>${myName}</b> (Apni) nilen: ${count} ti. Baki: ${current}`);
+            conn.send({ type: 'MOVE', count: count });
+
+            isMyTurn = false;
+            updateTurnUI();
+            checkLastOneStatus();
+        }
+
+        function checkLastOneStatus() {
+            clearTimeout(lastOneTimer);
+            if (current === 1) {
+                logMessage(`<b>Shes songkha 1 ti baki ache! 10 second somoy royeche, na nile here jaben!</b>`);
+                lastOneTimer = setTimeout(() => {
+                    if (isMyTurn && current === 1) {
+                        logMessage(`<b>Game Shes! ${myName}, apni 10 second e 1 ti songkha nenni, tai apni here gechen! 😢 Ar ${hostName} jite geche! 🥳</b>`);
+                        conn.send({ type: 'TIMEOUT_LOSE' });
+                        triggerAnimation('sad');
+                        lockControls(true);
+                    }
+                }, 10000);
+            }
+        }
+
+        function triggerAnimation(type) {
+            let container = document.getElementById('animContainer');
+            container.style.display = 'block';
+            container.innerHTML = '';
+            let emojiList = (type === 'sad') ? ['😢', '😭', '💔', '😞'] : ['🎉', '🥳', '✨', '🏆'];
+
+            for (let i = 0; i < 25; i++) {
+                let span = document.createElement('span');
+                span.className = 'floating-emoji';
+                span.innerText = emojiList[Math.floor(Math.random() * emojiList.length)];
+                span.style.left = Math.random() * 100 + 'vw';
+                span.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                span.style.animationDelay = (Math.random() * 1) + 's';
+                container.appendChild(span);
+            }
+        }
+
+        function updateTurnUI() {
+            let btns = [document.getElementById('btn1'), document.getElementById('btn2'), document.getElementById('btn3')];
+            let indicator = document.getElementById('turnIndicator');
+            if (isMyTurn) {
+                indicator.innerText = `Turn: ${myName} (Apnar Turn)`;
+                indicator.style.color = "#10b981";
+                btns.forEach(b => b.disabled = false);
+            } else {
+                indicator.innerText = `Turn: ${hostName} (${hostName}-er Turn)`;
+                indicator.style.color = "#ff3366";
+                btns.forEach(b => b.disabled = true);
+            }
+        }
+
+        function lockControls(lock) {
+            let btns = [document.getElementById('btn1'), document.getElementById('btn2'), document.getElementById('btn3')];
+            btns.forEach(b => b.disabled = true);
+        }
+
+        function logMessage(msg) {
+            let lb = document.getElementById('logBox');
+            lb.innerHTML += msg + "<br>";
+            lb.scrollTop = lb.scrollHeight;
+        }
+    </script>
+</body>
+</html>
